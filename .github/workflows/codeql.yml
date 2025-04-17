@@ -21,10 +21,16 @@ on:
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
+    # Runner matrices configure machines that will run the jobs.
+    # We recommend choosing the latest available version for each OS.
+    # Info: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
     runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
     permissions:
+      # required for all workflows
       security-events: write
+      # required to fetch internal or private CodeQL packs
       packages: read
+      # only required for workflows in private repositories
       actions: read
       contents: read
 
@@ -32,28 +38,51 @@ jobs:
       fail-fast: false
       matrix:
         include:
+        # If you wish to specify build modes, you can do so here. Build modes can be 'autobuild', 'manual', or 'none'
+        # If you are using workflow_call, be aware that the build mode is dictated by the caller workflow
+        # Learn more at https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-a-build-mode
         - language: java-kotlin
-          build-mode: manual
+          build-mode: manual # Set to 'manual' because we provide build steps below
         - language: javascript-typescript
-          build-mode: none
+          build-mode: none   # 'none' indicates no build is required for CodeQL to analyze these languages
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
         build-mode: ${{ matrix.build-mode }}
+        # If you wish to specify custom queries, you can do so here or in a config file.
+        # By default, queries listed here will override any specified in a config file.
+        # Prefix the list here with "+" to use these queries and those in the config file.
 
-    # Add a manual build step for java-kotlin
+        # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
+        # queries: security-extended,security-and-quality
+
+    # Autobuild attempts to build any compiled languages (C/C++, C#, Go, Java, Swift).
+    # If this step fails, then you should remove it and run the build manually (see below)
+    # - name: Autobuild
+    #   uses: github/codeql-action/autobuild@v3
+
+    # ℹ️ Relevant steps only run for the matrix entry explicitly defined in the matrix.
+    # If you want to override the build mode for specific languages you can use the matrix.build-mode variable:
+    # - if: matrix.language == 'java-kotlin' && matrix.build-mode == 'manual'
+    #   run: |
+    #     # Steps to build your Java/Kotlin project manually
+    # ℹ️ This is the customized build step for Java/Kotlin using Maven.
+    #    -> Replace 'mvn package -DskipTests' if your command is different (e.g., 'mvn install -DskipTests', 'mvn compile'). <-
+    #    -> If build needs to run in a sub-directory, add 'cd your-sub-dir' first. <-
     - if: matrix.language == 'java-kotlin' && matrix.build-mode == 'manual'
-      name: Build Java-Kotlin project
+      name: Build Java-Kotlin project (Maven)
       run: |
-        # Add your custom build commands here. Replace these with the commands specific to your project.
-        # Example for a Gradle project:
-        ./gradlew clean build
+        # Run the Maven build command
+        mvn package -DskipTests
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
