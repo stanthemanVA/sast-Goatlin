@@ -44,7 +44,7 @@ jobs:
         - language: java-kotlin
           build-mode: manual # Set to 'manual' because we provide build steps below
         - language: javascript-typescript
-          build-mode: none   # 'none' indicates no build is required for CodeQL to analyze these languages
+          build-mode: none    # 'none' indicates no build is required for CodeQL to analyze these languages
 
     steps:
     - name: Checkout repository
@@ -70,9 +70,9 @@ jobs:
       if: matrix.language == 'java-kotlin' # Only run for the Java/Kotlin job
 
     # ℹ️ This is the customized build step for Java/Kotlin using Gradle.
-    #    -> Ensure 'gradlew' exists in your repository root for the commit being built. <-
-    #    -> Adjust './gradlew clean build' if your command is different. <-
-    #    -> If build needs to run in a sub-directory, add 'cd your-sub-dir' first. <-
+    #     -> Ensure 'gradlew' exists in your repository root for the commit being built. <-
+    #     -> Adjust './gradlew clean build' if your command is different. <-
+    #     -> If build needs to run in a sub-directory, add 'cd your-sub-dir' first. <-
     - if: matrix.language == 'java-kotlin' && matrix.build-mode == 'manual'
       name: Build Java-Kotlin project (Gradle)
       run: |
