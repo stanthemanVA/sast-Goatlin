@@ -63,28 +63,27 @@ jobs:
         # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
         # queries: security-extended,security-and-quality
 
-    # Autobuild attempts to build any compiled languages (C/C++, C#, Go, Java, Swift).
-    # If this step fails, then you should remove it and run the build manually (see below)
-    # - name: Autobuild
-    #   uses: github/codeql-action/autobuild@v3
+    # *** DEBUGGING STEP ***
+    # List files to see if gradlew is present after checkout
+    - name: List files in workspace
+      run: ls -la
+      if: matrix.language == 'java-kotlin' # Only run for the Java/Kotlin job
 
-    # ℹ️ Relevant steps only run for the matrix entry explicitly defined in the matrix.
-    # If you want to override the build mode for specific languages you can use the matrix.build-mode variable:
-    # - if: matrix.language == 'java-kotlin' && matrix.build-mode == 'manual'
-    #   run: |
-    #     # Steps to build your Java/Kotlin project manually
     # ℹ️ This is the customized build step for Java/Kotlin using Gradle.
-    #    -> Ensure 'gradlew' exists in your repository root. <-
+    #    -> Ensure 'gradlew' exists in your repository root for the commit being built. <-
     #    -> Adjust './gradlew clean build' if your command is different. <-
     #    -> If build needs to run in a sub-directory, add 'cd your-sub-dir' first. <-
     - if: matrix.language == 'java-kotlin' && matrix.build-mode == 'manual'
       name: Build Java-Kotlin project (Gradle)
       run: |
+        echo "Attempting to build with Gradle..."
         # Grant execute permission just in case (may not be necessary if git permissions are correct)
+        # This command will fail if 'gradlew' is not found by the 'ls' step above.
         chmod +x gradlew
         # Run the build command
         ./gradlew clean build
 
+    # Perform CodeQL Analysis
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:
