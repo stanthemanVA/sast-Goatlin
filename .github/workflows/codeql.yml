@@ -73,14 +73,17 @@ jobs:
     # - if: matrix.language == 'java-kotlin' && matrix.build-mode == 'manual'
     #   run: |
     #     # Steps to build your Java/Kotlin project manually
-    # ℹ️ This is the customized build step for Java/Kotlin using Maven.
-    #    -> Replace 'mvn package -DskipTests' if your command is different (e.g., 'mvn install -DskipTests', 'mvn compile'). <-
+    # ℹ️ This is the customized build step for Java/Kotlin using Gradle.
+    #    -> Ensure 'gradlew' exists in your repository root. <-
+    #    -> Adjust './gradlew clean build' if your command is different. <-
     #    -> If build needs to run in a sub-directory, add 'cd your-sub-dir' first. <-
     - if: matrix.language == 'java-kotlin' && matrix.build-mode == 'manual'
-      name: Build Java-Kotlin project (Maven)
+      name: Build Java-Kotlin project (Gradle)
       run: |
-        # Run the Maven build command
-        mvn package -DskipTests
+        # Grant execute permission just in case (may not be necessary if git permissions are correct)
+        chmod +x gradlew
+        # Run the build command
+        ./gradlew clean build
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
